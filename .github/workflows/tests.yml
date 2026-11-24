@@ -1,0 +1,38 @@
+name: Tests
+# Runs Scripts/run-tests.sh (LoopKit, Loop, NightscoutService) on a macOS runner.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: "Space-separated: LoopKit Loop NightscoutService (blank = all)"
+        required: false
+        default: ""
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: xcode-27
+    timeout-minutes: 120
+    steps:
+      - name: Select Xcode version
+        run: "sudo xcode-select --switch /Applications/Xcode_27.1.app/Contents/Developer"
+
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Test
+        run: Scripts/run-tests.sh ${{ github.event.inputs.targets }}
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: build/test-logs/*.log
