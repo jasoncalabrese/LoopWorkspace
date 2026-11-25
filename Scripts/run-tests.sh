@@ -29,7 +29,7 @@ progress() {
   '
 }
 
-ERRORS="^/[^ ]+:[0-9]+:([0-9]+:)? error: |^Test Case .* failed|Restarting after unexpected exit"
+ERRORS="^/[^ ]+:[0-9]+:([0-9]+:)? error: |^error: |^Test Case .* failed|Restarting after unexpected exit"
 
 run() {  # name, xcodebuild action + args...
   local name=$1; shift
@@ -40,6 +40,18 @@ run() {  # name, xcodebuild action + args...
   if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     echo "$name: PASS ($((SECONDS - start))s)"
     return 0
+  fi
+
+  # Loop's Install Plugins phase doesn't wait for the plugin targets, so on a slow machine it can
+  # copy a plugin before its Info.plist exists and Validate fails. Build once more: only the
+  # copy reruns, now with the finished plugins.
+  if [ "$1" = build ] && grep -q "did not contain an Info.plist" "$LOG/$name.log"; then
+    echo "  plugins copied before they were built; building once more"
+    xcodebuild "$@" -destination "$DEST" -derivedDataPath "$DD" 2>&1 | tee "$LOG/$name-retry.log" | progress
+    if [ "${PIPESTATUS[0]}" -eq 0 ]; then
+      echo "$name: PASS on second build ($((SECONDS - start))s)"
+      return 0
+    fi
   fi
 
   # Failed tests only (no build errors): rerun just those once, without rebuilding, so a timing
