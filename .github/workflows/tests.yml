@@ -1,5 +1,5 @@
 name: Tests
-# Runs Scripts/run-tests.sh (LoopKit, Loop, NightscoutService) on a macOS runner.
+# Runs Scripts/run-tests.sh (LoopKit, Loop, NightscoutService, OmnipodKit) on a macOS runner.
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       targets:
-        description: "Space-separated: LoopKit Loop NightscoutService (blank = all)"
+        description: "Space-separated: LoopKit Loop NightscoutService OmnipodKit (blank = all)"
         required: false
         default: ""
 

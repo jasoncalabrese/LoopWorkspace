@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Run the LoopKit, Loop and NightscoutService unit tests on an iOS simulator.
-# Usage: Scripts/run-tests.sh [LoopKit|Loop|NightscoutService ...]   (default: all)
+# Run the LoopKit, Loop, NightscoutService and OmnipodKit unit tests on an iOS simulator.
+# Usage: Scripts/run-tests.sh [LoopKit|Loop|NightscoutService|OmnipodKit ...]   (default: all)
 #
-# Loop and NightscoutService tests import LoopKit and friends from other projects, so the
-# LoopWorkspace scheme is built first into a shared DerivedData and every test run reuses it.
+# Loop, NightscoutService and OmnipodKit tests import LoopKit and friends from other projects, so
+# the LoopWorkspace scheme is built first into a shared DerivedData and every test run reuses it.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
@@ -78,8 +78,8 @@ run() {  # name, xcodebuild action + args...
   return 1
 }
 
-TARGETS=${*:-LoopKit Loop NightscoutService}
-case " $TARGETS " in *" Loop "*|*" NightscoutService "*)
+TARGETS=${*:-LoopKit Loop NightscoutService OmnipodKit}
+case " $TARGETS " in *" Loop "*|*" NightscoutService "*|*" OmnipodKit "*)
   run Build build -workspace LoopWorkspace.xcworkspace -scheme LoopWorkspace || exit 1 ;;
 esac
 for t in $TARGETS; do
@@ -87,6 +87,7 @@ for t in $TARGETS; do
     LoopKit)           run LoopKit           test -project LoopKit/LoopKit.xcodeproj -scheme Shared ;;
     Loop)              run LoopTests         test -workspace LoopWorkspace.xcworkspace -scheme LoopTests ;;
     NightscoutService) run NightscoutService test -project NightscoutService/NightscoutService.xcodeproj -scheme Shared ;;
+    OmnipodKit)        run OmnipodKit        test -workspace LoopWorkspace.xcworkspace -scheme OmniTests ;;
     *) echo "unknown: $t"; FAILED=1 ;;
   esac
 done
